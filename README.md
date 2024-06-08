@@ -31,4 +31,7 @@ This is BrainFuck interpreter written in rust. The 1st version (or possibly more
 [ and ] form a while loop. Obviously, they must be balanced.
 
 **BELOW ARE COMMANDS THAT ARE NOT IN VANILLA BRAINFUCK, SO WITH -v OPTION THAT ARE GONNA BE SKIPPED**
+\ : Sets current cell value to 10 (LFeed)
+b'x' : Sets x character ASCII table value to current cell
+s"abc" : sets abc string (any numbers of characters) values to the current cell and the next ones as required
 ```
