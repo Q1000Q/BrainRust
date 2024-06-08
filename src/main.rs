@@ -109,12 +109,22 @@ fn main() {
             // 's' checks if there is a pair of double quotes after it, if there is, saves ASCII characters inside them, first as value in current cell, others in next ones
             b's' => {
                 if vanilla {break;}
-                if contents.as_bytes()[pc + 1] == b'\"' {
-                    pc += 2;
-                    while contents.as_bytes()[pc] != b'\"' {
-                        tape[pointer] = contents.as_bytes()[pc];
-                        if contents.as_bytes()[pc + 1] != b'\"' {
+                if contents.as_bytes()[pc + 1] == b'\"' {   // Checks if there is double quote after s command
+                    pc += 2;    // Adds 2 to pc to compensate for b and " characters before
+                    while contents.as_bytes()[pc] != b'\"' {    // Loop through characters for as long as it isn't "
+                        if contents.as_bytes()[pc] == b'\\' {
+                            if contents.as_bytes()[pc + 1] == b'\"' {
+                                pc += 1;
+                                tape[pointer] = contents.as_bytes()[pc];    // Saves character after '\' ASCII table value to current cell
+                            }
+                        } else {
+                            tape[pointer] = contents.as_bytes()[pc];    // Saves character ASCII table value to current cell                           
+                        }
+                        if contents.as_bytes()[pc + 1] != b'\"' {   // Checks if the next iteration will be last or not, if it's last, don't do next things
                             pointer += 1;
+                            if pointer >= tape.len() {      // Checks if pointer exceeded tape length, reset pointer to 0 if yes
+                                pointer = 0;
+                            }
                         }
                         pc += 1;
                         if pc >= contents.len() {panic!("No ending double quote after command s")}

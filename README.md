@@ -33,5 +33,5 @@ This is BrainFuck interpreter written in rust. The 1st version (or possibly more
 **BELOW ARE COMMANDS THAT ARE NOT IN VANILLA BRAINFUCK, SO WITH -v OPTION THAT ARE GONNA BE SKIPPED**
 \ : Sets current cell value to 10 (LFeed)
 b'x' : Sets x character ASCII table value to current cell
-s"abc" : sets abc string (any numbers of characters) values to the current cell and the next ones as required
+s"abc" : sets abc string (any numbers of characters) values to the current cell and the next ones as required, if you want to add " to the string use \"
 ```
