@@ -1,3 +1,4 @@
+use core::panic;
 use std::env;
 use std::fs;
 use std::io;
@@ -5,9 +6,18 @@ use std::io;
 fn main() {
     // Reads BrainFuck code file from argument
     let args: Vec<String> = env::args().collect();
-    let file_path: &String = &args[1];
+    let mut file_path: String = String::new();
+    let mut vanilla: bool = false;
+    for arg in args {
+        match arg.as_str() {
+            "-v" => vanilla = true, // Sets interpreter to work in vanilla mode, that means if command isn't in vanilla brainfuck it gonna skip it
+            _ => file_path = arg,
+        }
+    }
+
     let contents = fs::read_to_string(file_path)
         .expect("Should have been able to read file");
+
     // Creates tape and pointer
     let mut tape: [u8; 30000] = [0; 30000];
     let mut pointer: usize = 0;
@@ -76,6 +86,41 @@ fn main() {
                             _ => (),
                         }
                     }
+                }
+            },
+            //
+            // COMMANDS BELOW ARE NOT IN VANILLA BRAINFUCK, THEY WILL NOT EXECUTE WITH -v OPTION
+            //
+            // '\' sets current cell value to 10 (LFeed)
+            b'\\' => {
+                if vanilla {break;}
+                tape[pointer] = 10},
+
+            // 'b' checks if there is a pair of single quotes after it, if there is, saves ASCII character inside them as a value in current cell, otherwise program panics
+            b'b' => {
+                if vanilla {break;}
+                if contents.as_bytes()[pc + 1] == b'\'' && contents.as_bytes()[pc + 3] == b'\'' {
+                    tape[pointer] = contents.as_bytes()[pc + 2];
+                    pc += 3;
+                } else {
+                    panic!("Expected pair of single quotes after keyword b");
+                }
+            },
+            // 's' checks if there is a pair of double quotes after it, if there is, saves ASCII characters inside them, first as value in current cell, others in next ones
+            b's' => {
+                if vanilla {break;}
+                if contents.as_bytes()[pc + 1] == b'\"' {
+                    pc += 2;
+                    while contents.as_bytes()[pc] != b'\"' {
+                        tape[pointer] = contents.as_bytes()[pc];
+                        if contents.as_bytes()[pc + 1] != b'\"' {
+                            pointer += 1;
+                        }
+                        pc += 1;
+                        if pc >= contents.len() {panic!("No ending double quote after command s")}
+                    }
+                } else {
+                    panic!{"Expected pair of double quotes after command s"};
                 }
             },
             _ => (),

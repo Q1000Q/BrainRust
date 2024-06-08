@@ -8,8 +8,15 @@ This is BrainFuck interpreter written in rust. The 1st version (or possibly more
 .\BrainRust.exe .\code.bf
 ```
 
+## Additional options
+- -v - makes interpreter only use vanilla BrainFuck commands (+-><.,[]), rest gonna be skipped. Run program like this:
+```
+.\BrainRust.exe .\code.bf -v
+```
+
 ## Current commands
 ```
+**COMMANDS THAT ARE IN VANILLA BRAINFUCK**
 + : Increments the value at the current cell by one
 - : Decrements the value at the current cell by one
 > : Moves the data pointer to the next cell (cell on the right)
@@ -22,4 +29,6 @@ This is BrainFuck interpreter written in rust. The 1st version (or possibly more
     Otherwise, move backwards in the instructions to the corresponding [
 
 [ and ] form a while loop. Obviously, they must be balanced.
+
+**BELOW ARE COMMANDS THAT ARE NOT IN VANILLA BRAINFUCK, SO WITH -v OPTION THAT ARE GONNA BE SKIPPED**
 ```
