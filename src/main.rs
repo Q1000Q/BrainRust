@@ -174,7 +174,7 @@ fn main() {
                                 tape[pointer] = number;
                             },
                             Err(e) => {
-                                println!("Failed to parse hex string to int: {}", e);
+                                println!("Failed to parse decimal string to int: {}", e);
                             },
                         }
                     },
@@ -189,13 +189,12 @@ fn main() {
                                 break;
                             }
                         }
-                        // dec_str.parse::<u8>().unwrap();
                         match u8::from_str_radix(&bin_str, 2) {    // Converts binary value into u8 and saves it to the current cell
                             Ok(number) => {
                                 tape[pointer] = number;
                             },
                             Err(e) => {
-                                println!("Failed to parse hex string to int: {}", e);
+                                println!("Failed to parse binary string to int: {}", e);
                             },
                         }
                     },
