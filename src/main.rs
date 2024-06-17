@@ -133,6 +133,76 @@ fn main() {
                     panic!{"Expected pair of double quotes after command s"};
                 }
             },
+            // '0x' allows you to enter hex number, '0d' decimal and '0b' binary. These numbers will be entered in current cell
+            b'0' => {
+                if vanilla {break;} // Don't use if in vanilla mode
+                pc += 1;
+                match contents.as_bytes()[pc] { // Checks char after 0 to determinate if this is hex, decimal or binary number or just random 0
+                    b'x' => {   // Behavior for hex number
+                        let mut hex_str = String::new();    // Var for the hex number
+                        loop {
+                            pc += 1;
+                            if contents.as_bytes()[pc].is_ascii_hexdigit() { // Checks if char after x and the next ones are hex characters
+                                hex_str.push(contents.as_bytes()[pc] as char); // Adds hex char to hex_str var
+                            } else {
+                                pc -= 1;    // If it's not then moves position cursor one backwards and brakes the loop
+                                break;
+                            }
+                        }
+                        match u8::from_str_radix(&hex_str, 16) {    // Converts hex value into u8 and saves it to the current cell
+                            Ok(number) => {
+                                tape[pointer] = number;
+                            },
+                            Err(e) => {
+                                println!("Failed to parse hex string to int: {}", e);
+                            },
+                        }
+                    },
+                    b'd' => { // Behavior for decimal number
+                        let mut dec_str = String::new();
+                        loop {
+                            pc += 1;
+                            if contents.as_bytes()[pc].is_ascii_digit() {   // Checks if char after x and the next ones are numbers
+                                dec_str.push(contents.as_bytes()[pc] as char);  // Adds number to dec_str var
+                            } else {
+                                pc -= 1;    // If it's not then moves position cursor one backwards and brakes the loop
+                                break;
+                            }
+                        }
+                        match u8::from_str_radix(&dec_str, 10) {    // Converts decimal value into u8 and saves it to the current cell
+                            Ok(number) => {
+                                tape[pointer] = number;
+                            },
+                            Err(e) => {
+                                println!("Failed to parse hex string to int: {}", e);
+                            },
+                        }
+                    },
+                    b'b' => { // Behavior for binary number
+                        let mut bin_str = String::new();
+                        loop {
+                            pc += 1;
+                            if contents.as_bytes()[pc] == b'0' || contents.as_bytes()[pc] == b'1' { // Checks if char after x and the next ones are 0 or 1
+                                bin_str.push(contents.as_bytes()[pc] as char);  // Adds binary character to dec_str var
+                            } else {
+                                pc -= 1;    // If it's not then moves position cursor one backwards and brakes the loop
+                                break;
+                            }
+                        }
+                        // dec_str.parse::<u8>().unwrap();
+                        match u8::from_str_radix(&bin_str, 2) {    // Converts binary value into u8 and saves it to the current cell
+                            Ok(number) => {
+                                tape[pointer] = number;
+                            },
+                            Err(e) => {
+                                println!("Failed to parse hex string to int: {}", e);
+                            },
+                        }
+                    },
+
+                    _ => (),
+                }
+            },
             _ => (),
         }
         pc += 1;
