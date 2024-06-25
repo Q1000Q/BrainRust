@@ -22,7 +22,7 @@ impl Operations {
         let vanilla = self.vanilla;
         
         let code_bytes = code.as_bytes();
-        'ml: while pc < code.len() {
+        while pc < code.len() {
             match code_bytes[pc] {
                 // '>' adds 1 to pointer (moves pointer 1 right)
                 b'>' => {
