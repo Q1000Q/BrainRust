@@ -1,10 +1,11 @@
 use core::panic;
 use std::env;
 use std::fs::{self, File};
-use std::io;
 use std::io::ErrorKind;
 use std::io::Read;
 use std::io::Write;
+
+mod vanilla;
 
 struct Operations {
     tape: [u8; 30000],
@@ -24,72 +25,25 @@ impl Operations {
         let code_bytes = code.as_bytes();
         while pc < code.len() {
             match code_bytes[pc] {
-                // '>' adds 1 to pointer (moves pointer 1 right)
-                b'>' => {
-                    pointer += 1;
-                    if pointer >= tape.len() {
-                        pointer = 0;
-                    }
-                },
-                // '<' removes 1 to pointer (moves pointer 1 left)
-                b'<' => {
-                    if pointer == 0 {
-                        pointer = tape.len() - 1;
-                    } else {
-                        pointer -= 1;
-                    }
-                },
+                // '>' adds 1 to pointer (moves pointer 1 forward)
+                b'>' => vanilla::forward(&tape, &mut pointer),
+                // '<' removes 1 to pointer (moves pointer 1 backward)
+                b'<' => vanilla::backwards(&tape, &mut pointer),
                 // '+' adds 1 to localization at tape, that pointer points
-                b'+' => tape[pointer] = tape[pointer].wrapping_add(1),
+                b'+' => vanilla::increment(&mut tape, pointer),
                 // '-' removes 1 to localization at tape, that pointer points
-                b'-' => tape[pointer] = tape[pointer].wrapping_sub(1),
+                b'-' => vanilla::decrement(&mut tape, pointer),
                 // '.' prints out content of tape cell that pointer is pointing (as a ASCII character)
-                b'.' => print!("{}", tape[pointer] as char),
+                b'.' => vanilla::print(&tape, pointer),
                 // ',' require user to enter a ASCII character and saves it to the tape cell that pointer is pointing
-                b',' => {
-                    let mut tmp = String::new();
-                    io::stdin().read_line(&mut tmp).expect("Failed to read line");
-                    if let Some(byte) = tmp.bytes().next() {
-                        tape[pointer] = byte;
-                    }
-                },
+                b',' => vanilla::read(&mut tape, pointer),
                 // '[' starts loop, if the value at the current cell is 0, then skips to the corresponding ']'. Otherwise, move to the next instruction
-                b'[' => {
-                    if tape[pointer] == 0 {
-                        let mut loop_var: usize = 1;
-                        while loop_var != 0 {
-                            pc += 1;
-                            if pc >= code.len() {
-                                panic!("Unmatched [");
-                            }
-                            match code_bytes[pc] {
-                                b'[' => loop_var += 1,
-                                b']' => loop_var -= 1,
-                                _ => (),
-                            }
-                        }
-                    }
-                },
+                b'[' => vanilla::loop_open(&tape, pointer, &mut pc, code_bytes),
                 // ']' ends loop, f the value at the current cell is 0, move to the next instruction. Otherwise, move backwards in the instructions to the corresponding '['
-                b']' => {
-                    if tape[pointer] != 0 {
-                        let mut loop_var: usize = 1;
-                        while loop_var != 0 {
-                            if pc == 0 {
-                                panic!("Unmatched ]");
-                            }
-                            pc -= 1;
-                            match code_bytes[pc] {
-                                b'[' => loop_var -= 1,
-                                b']' => loop_var += 1,
-                                _ => (),
-                            }
-                        }
-                    }
-                },
-                //
+                b']' => vanilla::loop_close(&tape, pointer, &mut pc, code_bytes),
+                
                 // COMMANDS BELOW ARE NOT IN VANILLA BRAINFUCK, THEY WILL NOT EXECUTE WITH -v OPTION
-                //
+                
                 // '\' sets current cell value to 10 (LFeed)
                 b'\\' => {
                     if vanilla {break;}
