@@ -207,7 +207,16 @@ impl Operations {
                     operate_file.execute();
                     let tape_tmp = operate_file.tape;
 
-                    let buf: &[u8] = &tape_tmp;
+                    let mut new_file: Vec<u8> = Vec::new();
+                    for &char in tape_tmp.iter().rev() {
+                        if char == 0 {
+                            continue;
+                        }
+                        new_file.push(char);
+                    }
+                    new_file.reverse();
+
+                    let buf: &[u8] = &new_file;
                     if created {
                         operation_file.write_all(buf).unwrap();
                     } else {
