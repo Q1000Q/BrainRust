@@ -169,8 +169,8 @@ impl Operations {
                     if code_bytes[pc + 1] != b'{' {break;} // Checks if there is { character, if not brake
                     pc += 1;
 
-                    let mut created: bool = false;
-                    let mut operation_file = File::options().read(true).write(true).open(&path_tmp).unwrap_or_else(|error| { // Opens file if it exists, if not create one
+                    let mut created: bool = false; // Variable that will be false if file didn't exist before and true if it did
+                    let mut operation_file = File::options().read(true).write(true).open(&path_tmp).unwrap_or_else(|error| { // Opens file if it exists, if not creates one
                         if error.kind() == ErrorKind::NotFound {
                             created = true;
                             File::create(&path_tmp).unwrap_or_else(|error| {
@@ -181,6 +181,7 @@ impl Operations {
                         }
                     });
 
+                    // Reads file content and puts it to tape
                     let mut tape_tmp: [u8; 30000] = [0; 30000]; // Fills tape_tmp with 0
                     if !created {
                         let mut buf = Vec::new();    // Create buffer Vec
@@ -190,6 +191,7 @@ impl Operations {
                         }
                     }
                     
+                    // Check for end of operations
                     pc += 1;
                     let mut code_tmp = String::new();
                     while code_bytes[pc] != b'}' {
@@ -197,6 +199,7 @@ impl Operations {
                         pc += 1;
                     }
 
+                    // Creates new Operations struct for file
                     let mut operate_file = Operations {
                         tape: tape_tmp,
                         pointer: 0,
@@ -207,6 +210,7 @@ impl Operations {
                     operate_file.execute();
                     let tape_tmp = operate_file.tape;
 
+                    // Removes 0s (NULLs) from the end of the tape
                     let mut new_file: Vec<u8> = Vec::new();
                     for &char in tape_tmp.iter().rev() {
                         if char == 0 {
@@ -216,6 +220,7 @@ impl Operations {
                     }
                     new_file.reverse();
 
+                    // Writes new tape to file
                     let buf: &[u8] = &new_file;
                     if created {
                         operation_file.write_all(buf).unwrap();
