@@ -3,6 +3,7 @@ use std::fs::{self};
 
 mod vanilla;
 mod additiona_inputs;
+mod file_operations;
 
 struct Operations {
     tape: [u8; 30000],
@@ -42,6 +43,8 @@ impl Operations {
                 b's' => if !self.vanilla { additiona_inputs::string_input(&mut self.tape, &mut self.pointer, &mut self.pc, &code_bytes) },
                 // Numbers parsing (hex, dacimal or binary)
                 b'0' => if !self.vanilla { additiona_inputs::number_input(&mut self.tape, &mut self.pointer, &mut self.pc, &code_bytes) },
+
+                b'f' => if !self.vanilla { file_operations::open_file(&mut self.pc, &code_bytes); },
                 _ => (),
             }
             self.pc += 1;

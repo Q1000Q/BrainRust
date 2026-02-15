@@ -33,4 +33,6 @@ s"abc" : Sets abc string (any numbers of characters) values to the current cell 
 0xAA : Sets hex value after 0x to the current cell (needs exacly 2 hex numbers after 0x)
 0d123 : Sets decimal value after 0d to the current cell (needs exacly 3 decimal numbers after 0d)
 0b11001010 : Sets binary value after 0b to the current cell (needs exacly 8 binary numbers after 0b)
+
+f(file_path){operations} - opens file `file_path` or creates it and executes commands in file and the file contents is new tape (of length 30000, so content above 30000 characters in file won't be accessible and will be lost when opened)
 ```
