@@ -62,7 +62,7 @@ fn main() {
         }
     }
 
-    let file_path = file_path.expect("Usage: BrainRust.exe <file_path>");
+    let file_path = file_path.expect("Usage: BrainRust.exe [-v] <file_path>");
 
     let contents = fs::read_to_string(file_path)
         .expect("Should have been able to read file");
