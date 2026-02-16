@@ -10,7 +10,7 @@ pub fn forward(tape: &[u8], pointer: &mut usize) {
 }
 
 // Removes 1 from *pointer (moves *pointer 1 backward)
-pub fn backwards(tape: &[u8], pointer: &mut usize) {
+pub fn backward(tape: &[u8], pointer: &mut usize) {
     *pointer = if *pointer == 0 {
         tape.len() - 1
     } else {

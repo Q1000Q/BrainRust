@@ -58,3 +58,7 @@ pub fn number_input(tape: &mut [u8], pointer: &mut usize, pc: &mut usize, code_b
         _ => ()
     }
 }
+
+pub fn zero_input(tape: &mut [u8], pointer: &usize) {
+    tape[*pointer] = 0;
+}

@@ -2,8 +2,10 @@ use std::env;
 use std::fs::{self};
 
 mod vanilla;
-mod additiona_inputs;
+mod additional_inputs;
+mod additional_outputs;
 mod file_operations;
+mod extended;
 
 struct Operations {
     tape: [u8; 30000],
@@ -19,9 +21,9 @@ impl Operations {
         while self.pc < self.code.len() {
             match code_bytes[self.pc] {
                 // '>' adds 1 to pointer (moves pointer 1 forward)
-                b'>' => vanilla::forward(&self.tape, &mut self.pointer),
+                b'>' => if self.vanilla { vanilla::forward(&self.tape, &mut self.pointer) } else { extended::forward_extended(&mut self.tape, &mut self.pointer, &mut self.pc, &code_bytes); },
                 // '<' removes 1 to pointer (moves pointer 1 backward)
-                b'<' => vanilla::backwards(&self.tape, &mut self.pointer),
+                b'<' => if self.vanilla { vanilla::backward(&self.tape, &mut self.pointer) } else { extended::backward_extended(&mut self.tape, &mut self.pointer, &mut self.pc, &code_bytes); },
                 // '+' adds 1 to localization at tape, that pointer points
                 b'+' => vanilla::increment(&mut self.tape, &self.pointer),
                 // '-' removes 1 to localization at tape, that pointer points
@@ -36,13 +38,17 @@ impl Operations {
                 b']' => vanilla::loop_close(&self.tape, &self.pointer, &mut self.pc, code_bytes),
 
                 // '\' sets the current cell to 10 (LFeed)
-                b'\\' => if !self.vanilla { additiona_inputs::line_feeed_input(&mut self.tape, &self.pointer) },
+                b'\\' => if !self.vanilla { additional_inputs::line_feeed_input(&mut self.tape, &self.pointer) },
                 // b'c' sets the current cell to 'c' ASCII value
-                b'b' => if !self.vanilla { additiona_inputs::byte_input(&mut self.tape, &self.pointer, &mut self.pc, code_bytes) },
+                b'b' => if !self.vanilla { additional_inputs::byte_input(&mut self.tape, &self.pointer, &mut self.pc, code_bytes) },
                 // s"abc" sets current cell to 'a' ASCII value, after that moves, and procedes to the next character (in this case 'b')
-                b's' => if !self.vanilla { additiona_inputs::string_input(&mut self.tape, &mut self.pointer, &mut self.pc, &code_bytes) },
+                b's' => if !self.vanilla { additional_inputs::string_input(&mut self.tape, &mut self.pointer, &mut self.pc, &code_bytes) },
                 // Numbers parsing (hex, dacimal or binary)
-                b'0' => if !self.vanilla { additiona_inputs::number_input(&mut self.tape, &mut self.pointer, &mut self.pc, &code_bytes) },
+                b'0' => if !self.vanilla { additional_inputs::number_input(&mut self.tape, &mut self.pointer, &mut self.pc, &code_bytes) },
+                // Set current cell to 0
+                b'^' => if !self.vanilla { additional_inputs::zero_input(&mut self.tape, &self.pointer); },
+                // Prints out cell content as digit
+                b'p' => if !self.vanilla { additional_outputs::print_number(&self.tape, &self.pointer); },
 
                 b'f' => if !self.vanilla { file_operations::open_file(&mut self.pc, &code_bytes); },
                 _ => (),
