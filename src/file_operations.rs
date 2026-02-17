@@ -46,12 +46,10 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8]) {
 
     let mut file_operations = Operations {
         tape: file_tape,
-        pointer: 0,
         code: file_code,
-        pc: 0,
         vanilla: false
     };
-    file_operations.execute();
+    file_operations.run();
     let file_tape = file_operations.tape;
 
     // Remove zeroes from end of the tape
