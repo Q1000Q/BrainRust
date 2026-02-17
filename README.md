@@ -6,7 +6,7 @@ It is just some funny project, not for real usage.
 - To use this interpreter download source files and compile it with rust or download precompiled program from Releases
 - Then run it from console/terminal with path to file with Brainfuck code in argument eg.
 ```
-.\BrainRust.exe .\code.bf
+.\BrainRust.exe [-v] .\code.bf
 ```
 
 ## Current commands
@@ -35,4 +35,9 @@ s"abc" : Sets abc string (any numbers of characters) values to the current cell 
 0b11001010 : Sets binary value after 0b to the current cell (needs exacly 8 binary numbers after 0b)
 
 f(file_path){operations} - opens file `file_path` or creates it and executes commands in file and the file contents is new tape (of length 30000, so content above 30000 characters in file won't be accessible and will be lost when opened)
+
+If you have vanilla mode disabled you can also do `>123` to move 123 cells forward and `<32` to move 32 cells backward 
+
+^ : zeros current cell
+p : prints number value of current cell
 ```
