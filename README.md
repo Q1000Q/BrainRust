@@ -40,4 +40,5 @@ If you have vanilla mode disabled you can also do `>123` to move 123 cells forwa
 
 ^ : zeros current cell
 p : prints number value of current cell
+; : swaps current's cell value with next one
 ```

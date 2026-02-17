@@ -6,6 +6,7 @@ mod additional_inputs;
 mod additional_outputs;
 mod file_operations;
 mod extended;
+mod extras;
 
 struct Operations {
     tape: [u8; 30000],
@@ -51,6 +52,9 @@ impl Operations {
                 b'p' => if !self.vanilla { additional_outputs::print_number(&self.tape, &self.pointer); },
 
                 b'f' => if !self.vanilla { file_operations::open_file(&mut self.pc, &code_bytes); },
+
+                // Swaps current's and next cell's value
+                b';' => if !self.vanilla { extras::swap(&mut self.tape, &self.pointer); },
                 _ => (),
             }
             self.pc += 1;
