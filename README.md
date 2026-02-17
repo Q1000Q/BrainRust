@@ -38,7 +38,9 @@ f(file_path){operations} - opens file `file_path` or creates it and executes com
 
 If you have vanilla mode disabled you can also do `>123` to move 123 cells forward and `<32` to move 32 cells backward 
 
-^ : zeros current cell
-p : prints number value of current cell
-; : swaps current's cell value with next one
+^ : Zeros current cell
+p : Prints number value of current cell
+; : Swaps current's cell value with next one
+
+# : Comment, everything after this to end of the line won't be parsed as code
 ```

@@ -55,6 +55,9 @@ impl Operations {
 
                 // Swaps current's and next cell's value
                 b';' => if !self.vanilla { extras::swap(&mut self.tape, &self.pointer); },
+
+                // Comments
+                b'#' => if !self.vanilla { extras::comment(&mut self.pc, &code_bytes); },
                 _ => (),
             }
             self.pc += 1;
