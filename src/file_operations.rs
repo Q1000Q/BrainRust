@@ -1,4 +1,4 @@
-use std::{fs::{self, File}, io::{ErrorKind, Read, Write}};
+use std::{collections::HashMap, fs::{self, File}, io::{ErrorKind, Read, Write}};
 
 use crate::Operations;
 
@@ -45,9 +45,10 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8]) {
     }
 
     let mut file_operations = Operations {
-        tape: file_tape,
+        tape: &mut file_tape,
         code: file_code,
-        vanilla: false
+        vanilla: false,
+        macros: HashMap::new()
     };
     file_operations.run();
     let file_tape = file_operations.tape;
