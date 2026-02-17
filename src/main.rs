@@ -11,7 +11,7 @@ mod extras;
 fn execute(op: &mut Operations, pointer: Option<usize>, pc: Option<usize>) {
     let mut pointer: usize = pointer.unwrap_or(0);        
     let mut pc = pc.unwrap_or(0);   
-         
+
     let vanilla = op.vanilla;
     let tape = &mut op.tape;
     let code = &op.code;
@@ -48,6 +48,8 @@ fn execute(op: &mut Operations, pointer: Option<usize>, pc: Option<usize>) {
             b'^' => if !vanilla { additional_inputs::zero_input(tape, &pointer); },
             // Prints out cell content as digit
             b'p' => if !vanilla { additional_outputs::print_number(tape, &pointer); },
+            // Prints out address of current cell (pointer value)
+            b'A' => if !vanilla { additional_outputs::print_address(&pointer); },
 
             b'f' => if !vanilla { file_operations::open_file(&mut pc, &code_bytes); },
 
