@@ -42,5 +42,5 @@ If you have vanilla mode disabled you can also do `>123` to move 123 cells forwa
 p : Prints number value of current cell
 ; : Swaps current's cell value with next one
 
-# : Comment, everything after this to end of the line won't be parsed as code
+// : Comment, everything after this to end of the line won't be parsed as code
 ```
