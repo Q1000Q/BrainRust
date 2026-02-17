@@ -8,16 +8,21 @@ mod file_operations;
 mod extended;
 mod extras;
 
-fn execute(tape: &mut [u8], code: &String, pointer: Option<usize>, pc: Option<usize>, vanilla: bool) {
+fn execute(op: &mut Operations, pointer: Option<usize>, pc: Option<usize>) {
     let mut pointer: usize = pointer.unwrap_or(0);        
-    let mut pc = pc.unwrap_or(0);        
+    let mut pc = pc.unwrap_or(0);   
+         
+    let vanilla = op.vanilla;
+    let tape = &mut op.tape;
+    let code = &op.code;
+
     let code_bytes = code.as_bytes();
     while pc < code.len() {
         match code_bytes[pc] {
             // '>' adds 1 to pointer (moves pointer 1 forward)
             b'>' => if vanilla { vanilla::forward(tape, &mut pointer) } else { extended::forward_extended(tape, &mut pointer, &mut pc, &code_bytes); },
             // '<' removes 1 to pointer (moves pointer 1 backward)
-            b'<' => if vanilla { vanilla::backward(&tape, &mut pointer) } else { extended::backward_extended(tape, &mut pointer, &mut pc, &code_bytes); },
+            b'<' => if vanilla { vanilla::backward(tape, &mut pointer) } else { extended::backward_extended(tape, &mut pointer, &mut pc, &code_bytes); },
             // '+' adds 1 to localization at tape, that pointer points
             b'+' => vanilla::increment(tape, &pointer),
             // '-' removes 1 to localization at tape, that pointer points
@@ -27,9 +32,9 @@ fn execute(tape: &mut [u8], code: &String, pointer: Option<usize>, pc: Option<us
             // ',' require user to enter a ASCII character and saves it to the tape cell that pointer is pointing
             b',' => vanilla::read(tape, &pointer),
             // '[' starts loop, if the value at the current cell is 0, then skips to the corresponding ']'. Otherwise, move to the next instruction
-            b'[' => vanilla::loop_open(&tape, &pointer, &mut pc, code_bytes),
+            b'[' => vanilla::loop_open(tape, &pointer, &mut pc, code_bytes),
             // ']' ends loop, f the value at the current cell is 0, move to the next instruction. Otherwise, move backwards in the instructions to the corresponding '['
-            b']' => vanilla::loop_close(&tape, &pointer, &mut pc, code_bytes),
+            b']' => vanilla::loop_close(tape, &pointer, &mut pc, code_bytes),
 
             // '\' sets the current cell to 10 (LFeed)
             b'\\' => if !vanilla { additional_inputs::line_feeed_input(tape, &pointer) },
@@ -42,7 +47,7 @@ fn execute(tape: &mut [u8], code: &String, pointer: Option<usize>, pc: Option<us
             // Set current cell to 0
             b'^' => if !vanilla { additional_inputs::zero_input(tape, &pointer); },
             // Prints out cell content as digit
-            b'p' => if !vanilla { additional_outputs::print_number(&tape, &pointer); },
+            b'p' => if !vanilla { additional_outputs::print_number(tape, &pointer); },
 
             b'f' => if !vanilla { file_operations::open_file(&mut pc, &code_bytes); },
 
@@ -66,7 +71,7 @@ struct Operations {
 
 impl Operations {
     fn run(&mut self) {
-        execute(&mut self.tape, &self.code, Some(0), Some(0), self.vanilla);
+        execute(self, Some(0), Some(0));
     }
 }
 
