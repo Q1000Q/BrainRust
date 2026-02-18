@@ -55,7 +55,7 @@ pub fn number_input(tape: &mut [u8], pointer: &mut usize, pc: &mut usize, code_b
             *pc += 8;
             tape[*pointer] = u8::from_str_radix(binary_number, 2).expect("Failed to parse decimal string to int");
         }
-        _ => ()
+        _ => { *pc -= 1 }
     }
 }
 
