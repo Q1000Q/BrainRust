@@ -3,16 +3,19 @@ use std::{collections::HashMap, fs::{self, File}, io::{ErrorKind, Read, Write}};
 use crate::Operations;
 
 pub fn open_file(pc: &mut usize, code_bytes: &[u8]) {
-    if code_bytes[*pc + 1] != b'(' { return; }
-    *pc += 2;
-    let mut file_path = String::new();
-    while code_bytes[*pc] != b')' {
-        file_path.push(code_bytes[*pc] as char);
-        *pc += 1;
-    }
+    let rem = &code_bytes[(*pc + 1)..];
+    let mut iter = rem.iter();
 
-    if code_bytes[*pc + 1] != b'{' { return; }
-    *pc += 1;
+    if iter.next() != Some(&b'(') { return; }
+    let file_path: String = iter
+        .by_ref()
+        .take_while(|&b| b != &b')')
+        .map(|&b| b as char)
+        .collect();
+
+    if file_path.len() == 0 { return; }
+
+    if iter.next() != Some(&b'{') { return; }
 
     let mut created: bool = false;
     let mut file = File::options().read(true).write(true).open(&file_path).unwrap_or_else(|error| {
@@ -37,13 +40,14 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8]) {
     }
 
     // Save code to execute on file
-    *pc += 1;
-    let mut file_code = String::new();
-    while code_bytes[*pc] != b'}' {
-        file_code.push(code_bytes[*pc] as char);
-        *pc += 1;
-    }
+    let file_code: String = iter
+        .take_while(|&b| b != &b'}')
+        .map(|&b| b as char)
+        .collect();
 
+    *pc += 1 + file_path.len() + 1 + 1 + file_code.len() + 1;
+
+    // Run operations on file
     let mut file_operations = Operations {
         tape: &mut file_tape,
         code: file_code,
