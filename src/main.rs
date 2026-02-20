@@ -53,6 +53,9 @@ fn execute(op: &mut Operations<'_>, pointer: Option<usize>, pc: Option<usize>) {
             b'A' => if !vanilla { additional_outputs::print_address(&pointer); },
 
             b'f' => if !vanilla { file_operations::open_file(&mut pc, &code_bytes); },
+            b'r' => if !vanilla { file_operations::read_file(op.tape, &mut pointer, &mut pc, &code_bytes); },
+            b'w' => if !vanilla { file_operations::write_tape_to_file(op.tape, &mut pc, &code_bytes); },
+            b'a' => if !vanilla { file_operations::append_tape_to_file(op.tape, &mut pc, &code_bytes); },
 
             // Swaps current's and next cell's value
             b';' => if !vanilla { extras::swap(op.tape, &pointer); },
