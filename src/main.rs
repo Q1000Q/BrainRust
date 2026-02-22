@@ -17,6 +17,7 @@ fn execute(op: &mut Operations<'_>, pointer: Option<usize>, pc: Option<usize>) {
     let vanilla = op.vanilla;
     let code_bytes = op.code.as_bytes().to_vec();
     let code_len = code_bytes.len();
+    let relative_file_path = op.relative_file_path.clone().unwrap_or_else(|| String::from("./"));
 
     while pc < code_len {
         match code_bytes[pc] {
@@ -52,10 +53,10 @@ fn execute(op: &mut Operations<'_>, pointer: Option<usize>, pc: Option<usize>) {
             // Prints out address of current cell (pointer value)
             b'A' => if !vanilla { additional_outputs::print_address(&pointer); },
 
-            b'f' => if !vanilla { file_operations::open_file(&mut pc, &code_bytes); },
-            b'r' => if !vanilla { file_operations::read_file(op.tape, &mut pointer, &mut pc, &code_bytes); },
-            b'w' => if !vanilla { file_operations::write_tape_to_file(op.tape, &mut pc, &code_bytes); },
-            b'a' => if !vanilla { file_operations::append_tape_to_file(op.tape, &mut pc, &code_bytes); },
+            b'f' => if !vanilla { file_operations::open_file(&mut pc, &code_bytes, &relative_file_path); },
+            b'r' => if !vanilla { file_operations::read_file(op.tape, &mut pointer, &mut pc, &code_bytes, &relative_file_path); },
+            b'w' => if !vanilla { file_operations::write_tape_to_file(op.tape, &mut pc, &code_bytes, &relative_file_path); },
+            b'a' => if !vanilla { file_operations::append_tape_to_file(op.tape, &mut pc, &code_bytes, &relative_file_path); },
 
             // Swaps current's and next cell's value
             b';' => if !vanilla { extras::swap(op.tape, &pointer); },
@@ -69,7 +70,7 @@ fn execute(op: &mut Operations<'_>, pointer: Option<usize>, pc: Option<usize>) {
                 let mac = macros::define_macro(&mut pc, &code_bytes).unwrap();
                 op.define_macro(mac);
             },
-            // Get and run macro
+            // Run macro
             b'#' => if !vanilla {
                 let macro_name = macros::get_macro(&mut pc, &code_bytes).unwrap();
                 let macro_operations = op.get_macro_operations(macro_name).unwrap().clone();
@@ -77,7 +78,8 @@ fn execute(op: &mut Operations<'_>, pointer: Option<usize>, pc: Option<usize>) {
                     tape: &mut op.tape,
                     code: macro_operations,
                     vanilla: false,
-                    macros: HashMap::new()
+                    macros: HashMap::new(),
+                    relative_file_path: Some(relative_file_path.clone())
                 };
                 execute(macro_op, Some(pointer), Some(0));
             },
@@ -93,6 +95,7 @@ struct Operations<'a> {
     code: String,
     vanilla: bool,
     macros: HashMap<String, String>,
+    relative_file_path: Option<String>,
 }
 
 impl<'a> Operations<'a> {
@@ -123,15 +126,17 @@ fn main() {
 
     let file_path = file_path.expect("Usage: BrainRust.exe [-v] <file_path>");
 
-    let contents = fs::read_to_string(file_path)
+    let contents = fs::read_to_string(&file_path)
         .expect("Should have been able to read file");
 
     let mut tape = [0; 30000];
+    let code_directory_path = Some(std::path::Path::new(&file_path).parent().unwrap_or(std::path::Path::new("./")).to_string_lossy().to_string());
     let mut main = Operations {
         tape: &mut tape,
         code: contents,
         vanilla: vanilla,
-        macros: HashMap::new()
+        macros: HashMap::new(),
+        relative_file_path: code_directory_path
     };
     main.run();
     

@@ -5,7 +5,7 @@ pub fn swap(tape: &mut [u8], pointer: &usize) {
 }
 
 pub fn comment(pc: &mut usize, code_bytes: &[u8]) {
-    if code_bytes[*pc + 1] != b'/' { return; }
+    if *pc + 1 >= code_bytes.len() || code_bytes[*pc + 1] != b'/' { return; }
     while *pc < code_bytes.len() && code_bytes[*pc] != b'\n' {
         *pc += 1;
     }

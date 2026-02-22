@@ -2,12 +2,12 @@ use std::{collections::HashMap, fs::{self, File}, io::{ErrorKind, Read, Write}};
 
 use crate::Operations;
 
-pub fn open_file(pc: &mut usize, code_bytes: &[u8]) {
+pub fn open_file(pc: &mut usize, code_bytes: &[u8], relative_file_path: &String) {
     let rem = &code_bytes[(*pc + 1)..];
     let mut iter = rem.iter();
 
     if iter.next() != Some(&b'(') { return; }
-    let file_path: String = iter
+    let mut file_path: String = iter
         .by_ref()
         .take_while(|&b| b != &b')')
         .map(|&b| b as char)
@@ -15,6 +15,14 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8]) {
 
     *pc += 1 + file_path.len() + 1;
     if file_path.len() == 0 { return; }
+
+
+    let cwd_relative = file_path.bytes().nth(0).unwrap() == b'@';
+    if cwd_relative { 
+        file_path.remove(0);
+    } else {
+        file_path.insert_str(0, &relative_file_path);
+    }
 
     if iter.next() != Some(&b'{') { return; }
 
@@ -53,7 +61,8 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8]) {
         tape: &mut file_tape,
         code: file_code,
         vanilla: false,
-        macros: HashMap::new()
+        macros: HashMap::new(),
+        relative_file_path: None
     };
     file_operations.run();
     let file_tape = file_operations.tape;
@@ -75,20 +84,26 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8]) {
 }
 
 // Read file content to tape at the current cell and number of next ones
-pub fn read_file(tape: &mut [u8], pointer: &mut usize, pc: &mut usize, code_bytes: &[u8]) {
+pub fn read_file(tape: &mut [u8], pointer: &mut usize, pc: &mut usize, code_bytes: &[u8], relative_file_path: &String) {
     let rem = &code_bytes[(*pc + 1)..];
     let mut iter = rem.iter();
 
     if iter.next() != Some(&b'(') { return; }
-    let file_path: String = iter
+    let mut file_path: String = iter
         .by_ref()
         .take_while(|&b| b != &b')')
         .map(|&b| b as char)
         .collect();
 
     if file_path.len() == 0 { return; }
-
     *pc += 1 + file_path.len() + 1;
+
+    let cwd_relative = file_path.bytes().nth(0).unwrap() == b'@';
+    if cwd_relative { 
+        file_path.remove(0);
+    } else {
+        file_path.insert_str(0, &relative_file_path);
+    }
 
     if file_path.len() == 0 { return; }
 
@@ -106,6 +121,7 @@ pub fn read_file(tape: &mut [u8], pointer: &mut usize, pc: &mut usize, code_byte
 
     let mut file_buf: Vec<u8> = Vec::new();
     file.read_to_end(&mut file_buf).expect("Problem with reading the file");
+    file_buf.truncate(tape.len());
 
     for &ch in file_buf.iter() {
         tape[*pointer] = ch;
@@ -114,20 +130,26 @@ pub fn read_file(tape: &mut [u8], pointer: &mut usize, pc: &mut usize, code_byte
 }
 
 // Write tape content to file (from cell 0)
-pub fn write_tape_to_file(tape: &mut [u8], pc: &mut usize, code_bytes: &[u8]) {
+pub fn write_tape_to_file(tape: &mut [u8], pc: &mut usize, code_bytes: &[u8], relative_file_path: &String) {
     let rem = &code_bytes[(*pc + 1)..];
     let mut iter = rem.iter();
 
     if iter.next() != Some(&b'(') { return; }
-    let file_path: String = iter
+    let mut file_path: String = iter
         .by_ref()
         .take_while(|&b| b != &b')')
         .map(|&b| b as char)
         .collect();
 
     if file_path.len() == 0 { return; }
-
     *pc += 1 + file_path.len() + 1;
+
+    let cwd_relative = file_path.bytes().nth(0).unwrap() == b'@';
+    if cwd_relative { 
+        file_path.remove(0);
+    } else {
+        file_path.insert_str(0, &relative_file_path);
+    }
 
     if file_path.len() == 0 { return; }
 
@@ -155,21 +177,28 @@ pub fn write_tape_to_file(tape: &mut [u8], pc: &mut usize, code_bytes: &[u8]) {
         File::create(&file_path).unwrap().write_all(&*trimmed_tape).unwrap();
     }
 }
+
 // Append tape content to file (from cell 0)
-pub fn append_tape_to_file(tape: &mut [u8], pc: &mut usize, code_bytes: &[u8]) {
+pub fn append_tape_to_file(tape: &mut [u8], pc: &mut usize, code_bytes: &[u8], relative_file_path: &String) {
     let rem = &code_bytes[(*pc + 1)..];
     let mut iter = rem.iter();
 
     if iter.next() != Some(&b'(') { return; }
-    let file_path: String = iter
+    let mut file_path: String = iter
         .by_ref()
         .take_while(|&b| b != &b')')
         .map(|&b| b as char)
         .collect();
 
     if file_path.len() == 0 { return; }
-
     *pc += 1 + file_path.len() + 1;
+
+    let cwd_relative = file_path.bytes().nth(0).unwrap() == b'@';
+    if cwd_relative { 
+        file_path.remove(0);
+    } else {
+        file_path.insert_str(0, &relative_file_path);
+    }
 
     if file_path.len() == 0 { return; }
 
