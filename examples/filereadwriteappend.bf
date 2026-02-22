@@ -5,3 +5,4 @@ r(./tapeWriteTest.txt)  // Reads the file to tape (starting from current pointer
 <[<]
 >[.>]
 a(./tapeWriteTest.txt)  // Appends current tape to file (startng from cell with address 0)
+w(@./CWDRelativeFile.txt)
