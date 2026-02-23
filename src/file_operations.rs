@@ -57,15 +57,18 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8], relative_file_path: &String)
     *pc += 1 + file_code.len() + 1;
 
     // Run operations on file
+    let mut file_tapes = Vec::new();
+    file_tapes.push(file_tape);
     let mut file_operations = Operations {
-        tape: &mut file_tape,
+        tapes: &mut file_tapes,
+        current_tape_id: 0,
         code: file_code,
         vanilla: false,
         macros: HashMap::new(),
         relative_file_path: None
     };
     file_operations.run();
-    let file_tape = file_operations.tape;
+    let file_tape = file_operations.tapes[file_operations.current_tape_id];
 
     // Remove zeroes from end of the tape
     let mut trimmed_tape: Vec<u8> = file_tape.iter().copied().collect();
