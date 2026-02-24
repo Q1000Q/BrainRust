@@ -9,59 +9,61 @@ mod file_operations;
 mod extended;
 mod extras;
 mod macros;
+mod multi_tape;
 
-fn execute(op: &mut Operations<'_>, pointer: Option<usize>, pc: Option<usize>) {
-    let mut pointer: usize = pointer.unwrap_or(0);        
+fn execute(op: &mut Operations<'_>, pc: Option<usize>) {
     let mut pc = pc.unwrap_or(0);   
-
+    
     let vanilla = op.vanilla;
     let code_bytes = op.code.as_bytes().to_vec();
     let code_len = code_bytes.len();
     let relative_file_path = op.relative_file_path.clone().unwrap_or_else(|| String::from("./"));
-
-    let mut current_tape = op.tapes[op.current_tape_id];
-
+    
+    let mut current_tape = *op.tapes.get(&op.current_tape_id).unwrap_or(&([0; 30000], 0));
+    
     while pc < code_len {
+        let tape = &mut current_tape.0;
+        let pointer = &mut current_tape.1;
         match code_bytes[pc] {
             // '>' adds 1 to pointer (moves pointer 1 forward)
-            b'>' => if vanilla { vanilla::forward(&current_tape, &mut pointer) } else { extended::forward_extended(&current_tape, &mut pointer, &mut pc, &code_bytes); },
+            b'>' => if vanilla { vanilla::forward(tape, pointer) } else { extended::forward_extended(tape, pointer, &mut pc, &code_bytes); },
             // '<' removes 1 to pointer (moves pointer 1 backward)
-            b'<' => if vanilla { vanilla::backward(&current_tape, &mut pointer) } else { extended::backward_extended(&current_tape, &mut pointer, &mut pc, &code_bytes); },
+            b'<' => if vanilla { vanilla::backward(tape, pointer) } else { extended::backward_extended(tape, pointer, &mut pc, &code_bytes); },
             // '+' adds 1 to localization at tape, that pointer points
-            b'+' => vanilla::increment(&mut current_tape, &pointer),
+            b'+' => vanilla::increment(tape, pointer),
             // '-' removes 1 to localization at tape, that pointer points
-            b'-' => vanilla::decrement(&mut current_tape, &pointer),
+            b'-' => vanilla::decrement(tape, pointer),
             // '.' prints out content of tape cell that pointer is pointing (as a ASCII character)
-            b'.' => vanilla::print(&current_tape, &pointer),
+            b'.' => vanilla::print(tape, pointer),
             // ',' require user to enter a ASCII character and saves it to the tape cell that pointer is pointing
-            b',' => vanilla::read(&mut current_tape, &pointer),
+            b',' => vanilla::read(tape, pointer),
             // '[' starts loop, if the value at the current cell is 0, then skips to the corresponding ']'. Otherwise, move to the next instruction
-            b'[' => vanilla::loop_open(&current_tape, &pointer, &mut pc, &code_bytes),
+            b'[' => vanilla::loop_open(tape, pointer, &mut pc, &code_bytes),
             // ']' ends loop, f the value at the current cell is 0, move to the next instruction. Otherwise, move backwards in the instructions to the corresponding '['
-            b']' => vanilla::loop_close(&current_tape, &pointer, &mut pc, &code_bytes),
+            b']' => vanilla::loop_close(tape, pointer, &mut pc, &code_bytes),
 
             // '\' sets the current cell to 10 (LFeed)
-            b'\\' => if !vanilla { additional_inputs::line_feeed_input(&mut current_tape, &pointer) },
+            b'\\' => if !vanilla { additional_inputs::line_feeed_input(tape, pointer) },
             // b'c' sets the current cell to 'c' ASCII value
-            b'b' => if !vanilla { additional_inputs::byte_input(&mut current_tape, &pointer, &mut pc, &code_bytes) },
+            b'b' => if !vanilla { additional_inputs::byte_input(tape, pointer, &mut pc, &code_bytes) },
             // s"abc" sets current cell to 'a' ASCII value, after that moves, and procedes to the next character (in this case 'b')
-            b's' => if !vanilla { additional_inputs::string_input(&mut current_tape, &mut pointer, &mut pc, &code_bytes) },
+            b's' => if !vanilla { additional_inputs::string_input(tape, pointer, &mut pc, &code_bytes) },
             // Numbers parsing (hex, dacimal or binary)
-            b'0' => if !vanilla { additional_inputs::number_input(&mut current_tape, &mut pointer, &mut pc, &code_bytes) },
+            b'0' => if !vanilla { additional_inputs::number_input(tape, pointer, &mut pc, &code_bytes) },
             // Set current cell to 0
-            b'^' => if !vanilla { additional_inputs::zero_input(&mut current_tape, &pointer); },
+            b'^' => if !vanilla { additional_inputs::zero_input(tape, pointer); },
             // Prints out cell content as digit
-            b'p' => if !vanilla { additional_outputs::print_number(&current_tape, &pointer); },
+            b'p' => if !vanilla { additional_outputs::print_number(tape, pointer); },
             // Prints out address of current cell (pointer value)
-            b'A' => if !vanilla { additional_outputs::print_address(&pointer); },
+            b'A' => if !vanilla { additional_outputs::print_address(pointer); },
 
             b'f' => if !vanilla { file_operations::open_file(&mut pc, &code_bytes, &relative_file_path); },
-            b'r' => if !vanilla { file_operations::read_file(&mut current_tape, &mut pointer, &mut pc, &code_bytes, &relative_file_path); },
-            b'w' => if !vanilla { file_operations::write_tape_to_file(&mut current_tape, &mut pc, &code_bytes, &relative_file_path); },
-            b'a' => if !vanilla { file_operations::append_tape_to_file(&mut current_tape, &mut pc, &code_bytes, &relative_file_path); },
+            b'r' => if !vanilla { file_operations::read_file(tape, pointer, &mut pc, &code_bytes, &relative_file_path); },
+            b'w' => if !vanilla { file_operations::write_tape_to_file(tape, &mut pc, &code_bytes, &relative_file_path); },
+            b'a' => if !vanilla { file_operations::append_tape_to_file(tape, &mut pc, &code_bytes, &relative_file_path); },
 
             // Swaps current's and next cell's value
-            b';' => if !vanilla { extras::swap(&mut current_tape, &pointer); },
+            b';' => if !vanilla { extras::swap(tape, pointer); },
 
             // Comments
             b'/' => if !vanilla { extras::comment(&mut pc, &code_bytes); },
@@ -84,18 +86,28 @@ fn execute(op: &mut Operations<'_>, pointer: Option<usize>, pc: Option<usize>) {
                     macros: HashMap::new(),
                     relative_file_path: Some(relative_file_path.clone())
                 };
-                execute(macro_op, Some(pointer), Some(0));
+                execute(macro_op, Some(0));
             },
+
+            // Change tape
+            b'T' => if !vanilla { 
+                op.tapes.insert(op.current_tape_id, current_tape);
+                multi_tape::change_tape(&mut pc, &code_bytes, &mut op.tapes, &mut op.current_tape_id);
+                current_tape = *op.tapes.get(&op.current_tape_id).unwrap_or(&([0; 30000], 0));
+            }
             _ => (),
         }
         pc += 1;
         if pc >= code_len { break; }
     }
+    
+    // Save final tape state before returning
+    op.tapes.insert(op.current_tape_id, current_tape);
 }
 
 struct Operations<'a> {
-    tapes: &'a mut Vec<[u8; 30000]>,
-    current_tape_id: usize,
+    tapes: &'a mut HashMap<u8, ([u8; 30000], usize)>,
+    current_tape_id: u8,
     code: String,
     vanilla: bool,
     macros: HashMap<String, String>,
@@ -104,7 +116,7 @@ struct Operations<'a> {
 
 impl<'a> Operations<'a> {
     fn run(&mut self) {
-        execute(self, Some(0), Some(0));
+        execute(self, Some(0));
     }
 
     fn define_macro(&mut self, mac: (String, String)) {
@@ -133,18 +145,17 @@ fn main() {
     let contents = fs::read_to_string(&file_path)
         .expect("Should have been able to read file");
 
-    let mut tapes = Vec::new();
-    tapes.push([0; 30000]);
+    let mut tapes = HashMap::new();
+    tapes.insert(0, ([0; 30000], 0));
 
-    let code_directory_path = Some(std::path::Path::new(&file_path).parent().unwrap_or(std::path::Path::new("./")).to_string_lossy().to_string());
+    let code_directory_path = Some(std::path::Path::new(&file_path).parent().unwrap_or(std::path::Path::new("./")).to_string_lossy().to_string() + "/");
     let mut main = Operations {
         tapes: &mut tapes,
-        current_tape_id: 0,
+        current_tape_id: b'0',
         code: contents,
         vanilla: vanilla,
         macros: HashMap::new(),
         relative_file_path: code_directory_path
     };
     main.run();
-    
 }

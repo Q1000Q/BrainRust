@@ -57,8 +57,8 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8], relative_file_path: &String)
     *pc += 1 + file_code.len() + 1;
 
     // Run operations on file
-    let mut file_tapes = Vec::new();
-    file_tapes.push(file_tape);
+    let mut file_tapes = HashMap::new();
+    file_tapes.insert(0, (file_tape, 0));
     let mut file_operations = Operations {
         tapes: &mut file_tapes,
         current_tape_id: 0,
@@ -68,10 +68,10 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8], relative_file_path: &String)
         relative_file_path: None
     };
     file_operations.run();
-    let file_tape = file_operations.tapes[file_operations.current_tape_id];
+    let file_tape = *file_operations.tapes.get(&file_operations.current_tape_id).unwrap();
 
     // Remove zeroes from end of the tape
-    let mut trimmed_tape: Vec<u8> = file_tape.iter().copied().collect();
+    let mut trimmed_tape: Vec<u8> = file_tape.0.iter().copied().collect();
     while trimmed_tape.last() == Some(&0) {
         trimmed_tape.pop();
     }
