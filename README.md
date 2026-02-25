@@ -52,4 +52,4 @@ It is just some funny project, not for real usage.
 
 `//` : Comment, everything after this to end of the line won't be parsed as code <br>
 
-`Tn` : Switch to tape n (starting tape is 0), n could be any ONE character (eg. 0, 5, a, B, ^, ą, ...)
+`Tn` : Switch to tape n (starting tape is 0), n could be any ONE character (eg. 0, 5, a, B, ^, ...)
