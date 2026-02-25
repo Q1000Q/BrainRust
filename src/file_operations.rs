@@ -61,7 +61,7 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8], relative_file_path: &String)
     // Run operations on file
     let mut file_operations = Operations {
         tapes: &mut file_tapes,
-        current_tape_id: 0,
+        current_tape_id: 48,
         code: file_code,
         vanilla: false,
         macros: HashMap::new(),
