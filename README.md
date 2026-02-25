@@ -44,8 +44,11 @@ It is just some funny project, not for real usage.
 
 `^` : Zeros current cell <br>
 `p` : Prints number value of current cell <br>
-`;` : Swaps current's cell value with next one <br>
+`;` : Swaps current cell value with next one <br>
+`:` : Coppies current cell value to the next one <br>
 `A` : Prints out address of current cell (pointer value) <br>
+`R` : Inserts random number to current cell <br>
+`S` : Sleeps the current cell value seconds <br>
 
 `//` : Comment, everything after this to end of the line won't be parsed as code <br>
 

@@ -62,3 +62,8 @@ pub fn number_input(tape: &mut [u8], pointer: &mut usize, pc: &mut usize, code_b
 pub fn zero_input(tape: &mut [u8], pointer: &usize) {
     tape[*pointer] = 0;
 }
+
+pub fn random_number_input(tape: &mut [u8], pointer: &usize) {
+    let rnum: u8 = rand::random_range(0..255);
+    tape[*pointer] = rnum;
+}

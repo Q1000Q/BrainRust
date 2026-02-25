@@ -56,14 +56,20 @@ fn execute(op: &mut Operations<'_>, pc: Option<usize>) {
             b'p' => if !vanilla { additional_outputs::print_number(tape, pointer); },
             // Prints out address of current cell (pointer value)
             b'A' => if !vanilla { additional_outputs::print_address(pointer); },
+            // Sets current cell value to random number
+            b'R' => if !vanilla {additional_inputs::random_number_input(tape, pointer);},
 
             b'f' => if !vanilla { file_operations::open_file(&mut pc, &code_bytes, &relative_file_path); },
             b'r' => if !vanilla { file_operations::read_file(tape, pointer, &mut pc, &code_bytes, &relative_file_path); },
             b'w' => if !vanilla { file_operations::write_tape_to_file(tape, &mut pc, &code_bytes, &relative_file_path); },
             b'a' => if !vanilla { file_operations::append_tape_to_file(tape, &mut pc, &code_bytes, &relative_file_path); },
 
-            // Swaps current's and next cell's value
+            // Swaps current and next cell value
             b';' => if !vanilla { extras::swap(tape, pointer); },
+            // Copies current cell value to the next one
+            b':' => if !vanilla { extras::copy(tape, pointer); },
+            // Sleep for current cell value seconds
+            b'S' => if !vanilla { extras::sleep(tape, pointer); }
 
             // Comments
             b'/' => if !vanilla { extras::comment(&mut pc, &code_bytes); },
