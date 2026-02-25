@@ -38,13 +38,15 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8], relative_file_path: &String)
         }
     });
 
-    // Read file content and put it to tape
-    let mut file_tape: [u8; 30000] = [0; 30000];
+    // Read file content and put it to tapes
+    let mut file_tapes: HashMap<u8, ([u8; 30000], usize)> = HashMap::new();
     if !created {
         let mut buf = Vec::new();
         file.read_to_end(&mut buf).unwrap();
-        for (i, &byte) in buf.iter().enumerate().take(30000) {
-            file_tape[i] = byte;
+        for (tape_idx, chunk) in buf.chunks(30_000).enumerate().take(207) {
+            let mut tape_array = [0u8; 30000];
+            tape_array[..chunk.len()].copy_from_slice(chunk);
+            file_tapes.insert((tape_idx + 48) as u8, (tape_array, 0));
         }
     }
 
@@ -57,8 +59,6 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8], relative_file_path: &String)
     *pc += 1 + file_code.len() + 1;
 
     // Run operations on file
-    let mut file_tapes = HashMap::new();
-    file_tapes.insert(0, (file_tape, 0));
     let mut file_operations = Operations {
         tapes: &mut file_tapes,
         current_tape_id: 0,
@@ -68,21 +68,32 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8], relative_file_path: &String)
         relative_file_path: None
     };
     file_operations.run();
-    let file_tape = *file_operations.tapes.get(&file_operations.current_tape_id).unwrap();
 
-    // Remove zeroes from end of the tape
-    let mut trimmed_tape: Vec<u8> = file_tape.0.iter().copied().collect();
-    while trimmed_tape.last() == Some(&0) {
-        trimmed_tape.pop();
+    // Get tapes without pointers
+    let mut file_tapes: HashMap<u8, Vec<u8>> = file_operations.tapes
+        .iter()
+        .filter(|(_, (tape, _))| tape.iter().any(|&b| b != 0))
+        .map(|(k, (tape, _))| (*k, tape.to_vec()))
+        .collect();
+
+    // Remove zeroes from end of the last tape
+    if let Some((&max_key, last_tape)) = file_tapes.iter().max_by_key(|(k, _)| **k) {
+        let mut trimmed_tape = last_tape.clone();
+        while trimmed_tape.last() == Some(&0) {
+            trimmed_tape.pop();
+        }
+        file_tapes.insert(max_key, trimmed_tape);
     }
 
     // Write new file content
-    let buf: &[u8] = &trimmed_tape;
+    let mut sorted_tapes: Vec<_> = file_tapes.iter().collect();
+    sorted_tapes.sort_by_key(|(k, _)| *k);
+    let buf: Vec<u8> = sorted_tapes.iter().flat_map(|(_, v)| v.iter().copied()).collect();
     if created {
-        file.write_all(buf).unwrap();
+        file.write_all(&buf).unwrap();
     } else {
         fs::remove_file(&file_path).unwrap();
-        File::create(&file_path).unwrap().write_all(buf).unwrap();
+        File::create(&file_path).unwrap().write_all(&buf).unwrap();
     }
 }
 
