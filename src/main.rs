@@ -76,6 +76,7 @@ fn execute(op: &mut Operations<'_>, pc: Option<usize>) {
             // Debug dump value with 3 before and after
             b'D' => if !vanilla { extras::debug_dump(tape, pointer); }
 
+            b'(' => if !vanilla { extras::if_open(tape, pointer, &mut pc, &code_bytes); }
 
             // Define macro
             b'@' => if !vanilla {

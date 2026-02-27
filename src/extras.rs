@@ -26,15 +26,33 @@ pub fn sleep(tape: &mut [u8], pointer: &usize) {
 pub fn debug_dump(tape: &mut [u8], pointer: &usize) {
     let before = &tape[pointer.saturating_sub(4)..*pointer];
     let value = &tape[*pointer];
-    let after = &tape[pointer.saturating_add(1).min(tape.len())..pointer.saturating_add(5).min(tape.len())];
+    let after = &tape[pointer.saturating_add(1).min(tape.len())..pointer.saturating_add(4).min(tape.len())];
 
     let before_string = before.iter().map(|b| b.to_string()).collect::<Vec<_>>().join(" ");
     let after_string = after.iter().map(|b| b.to_string()).collect::<Vec<_>>().join(" ");
 
     let all_before_string = format!("[{}] {}", pointer, before_string);
-    println!("{} {} {}", all_before_string, value.to_string(), after_string);
+    println!("\n{} {} {}", all_before_string, value.to_string(), after_string);
 
     let spacers_count = all_before_string.len() + 1;
     let point_string = " ".repeat(spacers_count) + "^";
     println!("{}", point_string);
+}
+
+// If current cell is anything other than 0, execute once
+pub fn if_open(tape: &[u8], pointer: &usize, pc: &mut usize, code_bytes: &[u8]) {
+    if tape[*pointer] == 0 {
+        let mut if_var: usize = 1;
+        while if_var != 0 {
+            *pc += 1;
+            if *pc >= code_bytes.len() {
+                panic!("Unmatched (");
+            }
+            match code_bytes[*pc] {
+                b'(' => if_var += 1,
+                b')' => if_var -= 1,
+                _ => (),
+            }
+        }
+    }
 }
