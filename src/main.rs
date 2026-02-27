@@ -134,19 +134,32 @@ impl<'a> Operations<'a> {
     }
 }
 
+fn print_version() {
+    let version: &str = env!("CARGO_PKG_VERSION");
+    println!("v{}", version);
+}
+
 fn main() {
     // Reads Brainfuck code file from argument
     let args: Vec<String> = env::args().collect();
     let mut file_path: Option<String> = None;
     let mut vanilla: bool = false;
-    for arg in args {
+    for arg in &args[1..] {
         match arg.as_str() {
-            "-v" => vanilla = true,
-            _ => file_path = Some(arg),
+            "--vanilla" => vanilla = true,
+            "-v" => print_version(),
+            "--version" => print_version(),
+            _ => file_path = Some(arg.to_string()),
         }
     }
 
-    let file_path = file_path.expect("Usage: BrainRust.exe [-v] <file_path>");
+    if file_path.is_none() {
+        print!("Usage: brainrust [--vanilla] <file_path>");
+        return;
+    }
+
+    let file_path = file_path.expect("Usage: brainrust [--vanilla] <file_path>");
+    print!("{}", file_path);
 
     let contents = fs::read_to_string(&file_path)
         .expect("Should have been able to read file");

@@ -6,7 +6,7 @@ It is just some funny project, not for real usage.
 - To use this interpreter download source files and compile it with rust or download precompiled program from Releases
 - Then run it from console/terminal with path to file with Brainfuck code in argument eg.
 ```
-.\BrainRust.exe [-v] .\code.bf
+brainrust [--vanilla] code.bf
 ```
 
 ## Current commands
@@ -24,7 +24,7 @@ It is just some funny project, not for real usage.
 
 `[` and `]` form a while loop. Obviously, they must be balanced.
 
-### BELOW ARE COMMANDS THAT ARE NOT IN VANILLA BRAINFUCK, SO WITH `-v` OPTION THEY WILL BE SKIPPED
+### BELOW ARE COMMANDS THAT ARE NOT IN VANILLA BRAINFUCK, SO WITH `--vanilla` OPTION THEY WILL BE SKIPPED
 
 `\` : Sets current cell value to 10 (LFeed) <br>
 `b'x'` : Sets x character ASCII table value to current cell <br>
