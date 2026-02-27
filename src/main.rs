@@ -73,6 +73,8 @@ fn execute(op: &mut Operations<'_>, pc: Option<usize>) {
 
             // Comments
             b'/' => if !vanilla { extras::comment(&mut pc, &code_bytes); },
+            // Debug dump value with 3 before and after
+            b'D' => if !vanilla { extras::debug_dump(tape, pointer); }
 
 
             // Define macro
@@ -159,7 +161,6 @@ fn main() {
     }
 
     let file_path = file_path.expect("Usage: brainrust [--vanilla] <file_path>");
-    print!("{}", file_path);
 
     let contents = fs::read_to_string(&file_path)
         .expect("Should have been able to read file");

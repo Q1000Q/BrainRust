@@ -50,6 +50,7 @@ brainrust [--vanilla] code.bf
 `R` : Inserts random number to current cell <br>
 `S` : Sleeps the current cell value seconds <br>
 
+`D` : Prints a splice of a tape with current cell pointed at along its address, mainy for debbuging purposes
 `//` : Comment, everything after this to end of the line won't be parsed as code <br>
 
 `Tn` : Switch to tape n (starting tape is 0), n could be any ONE character (eg. 0, 5, a, B, ^, ...)

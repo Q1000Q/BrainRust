@@ -32,5 +32,5 @@ pub fn backward_extended(tape: &[u8], pointer: &mut usize, pc: &mut usize, code_
     let distance = usize::from_str_radix(&distance_str, 10).unwrap();
 
     let len = tape.len();
-    *pointer = ((*pointer - distance) % len + len) % len;
+    *pointer = (*pointer + len - (distance % len)) % len;
 }
