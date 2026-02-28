@@ -10,3 +10,5 @@
 D       // Debug print
 $2{++ > 0d005}
 D
+
+$0{s"Hello World!"}[.>]
