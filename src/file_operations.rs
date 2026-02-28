@@ -7,13 +7,14 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8], relative_file_path: &String)
     let mut iter = rem.iter();
 
     if iter.next() != Some(&b'(') { return; }
-    let mut file_path: String = iter
-        .by_ref()
-        .take_while(|&b| b != &b')')
-        .map(|&b| b as char)
-        .collect();
 
-    *pc += 1 + file_path.len() + 1;
+    let path_end = rem[1..].iter().position(|&b| b == b')').map(|idx| idx + 1);
+    if path_end.is_none() { return; }
+    let path_end = path_end.unwrap();
+
+    let mut file_path = String::from_utf8_lossy(&rem[1..path_end]).to_string();
+
+    *pc += path_end + 1;
     if file_path.len() == 0 { return; }
 
 
@@ -24,7 +25,11 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8], relative_file_path: &String)
         file_path.insert_str(0, &relative_file_path);
     }
 
-    if iter.next() != Some(&b'{') { return; }
+    let block_start = path_end + 1;
+    let parsed_block = crate::parse_balanced_curly_block(rem, block_start);
+    if parsed_block.is_none() { return; }
+    let (file_code, block_len) = parsed_block.unwrap();
+    *pc += block_len;
 
     let mut created: bool = false;
     let mut file = File::options().read(true).write(true).open(&file_path).unwrap_or_else(|error| {
@@ -49,14 +54,9 @@ pub fn open_file(pc: &mut usize, code_bytes: &[u8], relative_file_path: &String)
             file_tapes.insert((tape_idx + 48) as u8, (tape_array, 0));
         }
     }
-
-    // Save code to execute on file
-    let file_code: String = iter
-        .take_while(|&b| b != &b'}')
-        .map(|&b| b as char)
-        .collect();
-
-    *pc += 1 + file_code.len() + 1;
+    if file_tapes.get(&b'0').is_none() {
+        file_tapes.insert(b'0', ([0; 30000], 0));
+    }
 
     // Run operations on file
     let mut file_operations = Operations {

@@ -64,11 +64,10 @@ pub fn access_relative_cell(pc: &mut usize, code_bytes: &[u8]) -> Option<(isize,
     }
 
     let rem = &code_bytes[(*pc + 1)..];
-    let mut iter = rem.iter();
+    let block_start = rem.iter().position(|&b| b == b'{')?;
 
-    let distance_string: String = iter
-        .by_ref()
-        .take_while(|&b| b != &b'{')
+    let distance_string: String = rem[..block_start]
+        .iter()
         .map(|&b| b as char)
         .collect();
 
@@ -78,12 +77,9 @@ pub fn access_relative_cell(pc: &mut usize, code_bytes: &[u8]) -> Option<(isize,
     
     let distance = isize::from_str_radix(&distance_string, 10).ok()?;
 
-    let code: String = iter
-        .take_while(|&b| b != &b'}')
-        .map(|&b| b as char)
-        .collect();
+    let (code, block_len) = crate::parse_balanced_curly_block(rem, block_start)?;
 
-    *pc += distance_string.len() + 1 + code.len() + 1;
+    *pc += block_start + block_len;
 
     Some((distance, code))
 }

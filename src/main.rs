@@ -11,6 +11,29 @@ mod extras;
 mod macros;
 mod multi_tape;
 
+pub(crate) fn parse_balanced_curly_block(code_bytes: &[u8], open_index: usize) -> Option<(String, usize)> {
+    if code_bytes.get(open_index) != Some(&b'{') {
+        return None;
+    }
+
+    let mut depth: usize = 0;
+    for idx in open_index..code_bytes.len() {
+        match code_bytes[idx] {
+            b'{' => depth += 1,
+            b'}' => {
+                depth -= 1;
+                if depth == 0 {
+                    let content = String::from_utf8_lossy(&code_bytes[(open_index + 1)..idx]).to_string();
+                    return Some((content, idx - open_index + 1));
+                }
+            }
+            _ => (),
+        }
+    }
+
+    None
+}
+
 fn execute(op: &mut Operations<'_>, pc: Option<usize>) {
     let mut pc = pc.unwrap_or(0);   
     
@@ -19,7 +42,12 @@ fn execute(op: &mut Operations<'_>, pc: Option<usize>) {
     let code_len = code_bytes.len();
     let relative_file_path = op.relative_file_path.clone().unwrap_or_else(|| String::from("./"));
     
-    let mut current_tape = *op.tapes.get(&op.current_tape_id).unwrap_or(&([0; 30000], 0));
+    let initial_tape = op
+        .tapes
+        .get(&op.current_tape_id)
+        .copied()
+        .expect("Current tape should exist");
+    let mut current_tape = Box::new(initial_tape);
     
     while pc < code_len {
         let tape = &mut current_tape.0;
@@ -75,7 +103,7 @@ fn execute(op: &mut Operations<'_>, pc: Option<usize>) {
             b'$' => if !vanilla {
                 if let Some((distance, relative_code)) = extras::access_relative_cell(&mut pc, &code_bytes) {
                     let curr_pointer = *pointer;
-                    op.tapes.insert(op.current_tape_id, current_tape);
+                    op.tapes.insert(op.current_tape_id, *current_tape);
 
                     if let Some((target_tape, target_pointer)) = op.tapes.get_mut(&op.current_tape_id) {
                         let target = ((*target_pointer as isize + distance).rem_euclid(target_tape.len() as isize)) as usize;
@@ -92,7 +120,11 @@ fn execute(op: &mut Operations<'_>, pc: Option<usize>) {
                     };
                     execute(&mut relative_operations, Some(0));
                     op.macros = relative_operations.macros;
-                    current_tape = *op.tapes.get(&op.current_tape_id).unwrap_or(&([0; 30000], 0));
+                    *current_tape = op
+                        .tapes
+                        .get(&op.current_tape_id)
+                        .copied()
+                        .expect("Current tape should exist");
                     current_tape.1 = curr_pointer;
                 }
             }
@@ -111,6 +143,7 @@ fn execute(op: &mut Operations<'_>, pc: Option<usize>) {
             },
             // Run macro
             b'#' => if !vanilla {
+                op.tapes.insert(op.current_tape_id, *current_tape);
                 let macro_name = macros::get_macro(&mut pc, &code_bytes).unwrap();
                 let macro_operations = op.get_macro_operations(macro_name).unwrap().clone();
                 let macro_op = &mut Operations {
@@ -122,13 +155,22 @@ fn execute(op: &mut Operations<'_>, pc: Option<usize>) {
                     relative_file_path: Some(relative_file_path.clone())
                 };
                 execute(macro_op, Some(0));
+                *current_tape = op
+                    .tapes
+                    .get(&op.current_tape_id)
+                    .copied()
+                    .expect("Current tape should exist");
             },
 
             // Change tape
             b'T' => if !vanilla { 
-                op.tapes.insert(op.current_tape_id, current_tape);
+                op.tapes.insert(op.current_tape_id, *current_tape);
                 multi_tape::change_tape(&mut pc, &code_bytes, &mut op.tapes, &mut op.current_tape_id);
-                current_tape = *op.tapes.get(&op.current_tape_id).unwrap_or(&([0; 30000], 0));
+                *current_tape = op
+                    .tapes
+                    .get(&op.current_tape_id)
+                    .copied()
+                    .expect("Current tape should exist");
             }
             _ => (),
         }
@@ -137,7 +179,7 @@ fn execute(op: &mut Operations<'_>, pc: Option<usize>) {
     }
     
     // Save final tape state before returning
-    op.tapes.insert(op.current_tape_id, current_tape);
+    op.tapes.insert(op.current_tape_id, *current_tape);
 }
 
 struct Operations<'a> {
@@ -168,7 +210,7 @@ fn print_version() {
     println!("v{}", version);
 }
 
-fn main() {
+fn run_main() {
     // Reads Brainfuck code file from argument
     let args: Vec<String> = env::args().collect();
     let mut file_path: Option<String> = None;
@@ -193,7 +235,7 @@ fn main() {
         .expect("Should have been able to read file");
 
     let mut tapes = HashMap::new();
-    tapes.insert(0, ([0; 30000], 0));
+    tapes.insert(b'0', ([0; 30000], 0));
 
     let code_directory_path = Some(std::path::Path::new(&file_path).parent().unwrap_or(std::path::Path::new("./")).to_string_lossy().to_string() + "/");
     let mut main = Operations {
@@ -205,4 +247,14 @@ fn main() {
         relative_file_path: code_directory_path
     };
     main.run();
+}
+
+fn main() {
+    std::thread::Builder::new()
+        .name(String::from("brainrust-main"))
+        .stack_size(16 * 1024 * 1024)
+        .spawn(run_main)
+        .expect("Failed to start interpreter thread")
+        .join()
+        .expect("Interpreter thread panicked");
 }
