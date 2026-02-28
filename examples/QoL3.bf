@@ -7,4 +7,6 @@
 >
 0d123
 
-D       // Debug view
+D       // Debug print
+$2{++ > 0d005}
+D

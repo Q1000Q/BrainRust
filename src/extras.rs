@@ -1,13 +1,14 @@
 use std::{io::{self, Write}, thread, time};
 
 pub fn swap(tape: &mut [u8], pointer: &usize) {
-    tape[*pointer] = tape[*pointer] ^ tape[(*pointer + 1) % tape.len()];
-    tape[(*pointer + 1) % tape.len()] = tape[*pointer] ^ tape[(*pointer + 1) % tape.len()];
-    tape[*pointer] = tape[*pointer] ^ tape[(*pointer + 1) % tape.len()];
+    let next_pos = (*pointer + 1).rem_euclid(tape.len());
+    tape[*pointer] = tape[*pointer] ^ tape[next_pos];
+    tape[next_pos] = tape[*pointer] ^ tape[next_pos];
+    tape[*pointer] = tape[*pointer] ^ tape[next_pos];
 }
 
 pub fn copy(tape: &mut [u8], pointer: &usize) {
-    tape[(*pointer + 1) % tape.len()] = tape[*pointer];
+    tape[(*pointer + 1).rem_euclid(tape.len())] = tape[*pointer];
 }
 
 pub fn comment(pc: &mut usize, code_bytes: &[u8]) {
@@ -24,7 +25,7 @@ pub fn sleep(tape: &mut [u8], pointer: &usize) {
 }
 
 pub fn debug_dump(tape: &mut [u8], pointer: &usize) {
-    let before = &tape[pointer.saturating_sub(4)..*pointer];
+    let before = &tape[pointer.saturating_sub(3)..*pointer];
     let value = &tape[*pointer];
     let after = &tape[pointer.saturating_add(1).min(tape.len())..pointer.saturating_add(4).min(tape.len())];
 
@@ -55,4 +56,34 @@ pub fn if_open(tape: &[u8], pointer: &usize, pc: &mut usize, code_bytes: &[u8]) 
             }
         }
     }
+}
+
+pub fn access_relative_cell(pc: &mut usize, code_bytes: &[u8]) -> Option<(isize, String)> {
+    if *pc + 1 >= code_bytes.len() {
+        return None;
+    }
+
+    let rem = &code_bytes[(*pc + 1)..];
+    let mut iter = rem.iter();
+
+    let distance_string: String = iter
+        .by_ref()
+        .take_while(|&b| b != &b'{')
+        .map(|&b| b as char)
+        .collect();
+
+    if distance_string.is_empty() {
+        return None;
+    }
+    
+    let distance = isize::from_str_radix(&distance_string, 10).ok()?;
+
+    let code: String = iter
+        .take_while(|&b| b != &b'}')
+        .map(|&b| b as char)
+        .collect();
+
+    *pc += distance_string.len() + 1 + code.len() + 1;
+
+    Some((distance, code))
 }

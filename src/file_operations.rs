@@ -139,7 +139,7 @@ pub fn read_file(tape: &mut [u8], pointer: &mut usize, pc: &mut usize, code_byte
 
     for &ch in file_buf.iter() {
         tape[*pointer] = ch;
-        *pointer = (*pointer + 1) % tape.len();
+        *pointer = (*pointer + 1).rem_euclid(tape.len());
     }
 }
 

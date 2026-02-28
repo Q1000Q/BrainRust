@@ -14,7 +14,7 @@ pub fn forward_extended(tape: &[u8], pointer: &mut usize, pc: &mut usize, code_b
 
     let distance = usize::from_str_radix(&distance_str, 10).unwrap();
 
-    *pointer = (*pointer + distance) % tape.len();
+    *pointer = ((*pointer + distance) as isize).rem_euclid(tape.len() as isize) as usize;
 }
 
 pub fn backward_extended(tape: &[u8], pointer: &mut usize, pc: &mut usize, code_bytes: &[u8]) {
@@ -31,6 +31,5 @@ pub fn backward_extended(tape: &[u8], pointer: &mut usize, pc: &mut usize, code_
 
     let distance = usize::from_str_radix(&distance_str, 10).unwrap();
 
-    let len = tape.len();
-    *pointer = (*pointer + len - (distance % len)) % len;
+    *pointer = ((*pointer - distance) as isize).rem_euclid(tape.len() as isize) as usize;
 }

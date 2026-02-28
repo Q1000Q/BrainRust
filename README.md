@@ -49,6 +49,9 @@ brainrust [--vanilla] code.bf
 `A` : Prints out address of current cell (pointer value) <br>
 `R` : Inserts random number to current cell <br>
 `S` : Sleeps the current cell value seconds <br>
+`$distance{operations}` : Executes operations with pointer moved by `distance` (distance can be negative) (pointer will return to its original location after executing operations) <br>
+
+`(operations)` : executes operations exacly once if the current value is other than 0, skips operations otherwise
 
 `D` : Prints a splice of a tape with current cell pointed at along its address, mainy for debbuging purposes
 `//` : Comment, everything after this to end of the line won't be parsed as code <br>

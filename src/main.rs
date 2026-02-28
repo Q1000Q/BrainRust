@@ -71,6 +71,32 @@ fn execute(op: &mut Operations<'_>, pc: Option<usize>) {
             // Sleep for current cell value seconds
             b'S' => if !vanilla { extras::sleep(tape, pointer); }
 
+            // Run code at tape[pointer + distance]
+            b'$' => if !vanilla {
+                if let Some((distance, relative_code)) = extras::access_relative_cell(&mut pc, &code_bytes) {
+                    let curr_pointer = *pointer;
+                    op.tapes.insert(op.current_tape_id, current_tape);
+
+                    if let Some((target_tape, target_pointer)) = op.tapes.get_mut(&op.current_tape_id) {
+                        let target = ((*target_pointer as isize + distance).rem_euclid(target_tape.len() as isize)) as usize;
+                        *target_pointer = target;
+                    }
+
+                    let mut relative_operations = Operations {
+                        tapes: &mut op.tapes,
+                        current_tape_id: op.current_tape_id,
+                        code: relative_code,
+                        vanilla: false,
+                        macros: op.macros.clone(),
+                        relative_file_path: Some(relative_file_path.clone()),
+                    };
+                    execute(&mut relative_operations, Some(0));
+                    op.macros = relative_operations.macros;
+                    current_tape = *op.tapes.get(&op.current_tape_id).unwrap_or(&([0; 30000], 0));
+                    current_tape.1 = curr_pointer;
+                }
+            }
+
             // Comments
             b'/' => if !vanilla { extras::comment(&mut pc, &code_bytes); },
             // Debug dump value with 3 before and after
