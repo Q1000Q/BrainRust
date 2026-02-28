@@ -57,3 +57,6 @@ brainrust [--vanilla] code.bf
 `//` : Comment, everything after this to end of the line won't be parsed as code <br>
 
 `Tn` : Switch to tape n (starting tape is 0), n could be any ONE character (eg. 0, 5, a, B, ^, ...)
+
+`@(name){operations}` : Define macro of name `name` with `operations` <br>
+`#(name)` : Runs macro of name `name`
