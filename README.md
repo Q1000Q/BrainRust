@@ -68,7 +68,7 @@ Pointer movement extension:
 - You can use `>123` to move 123 cells right and `<32` to move 32 cells left.
 
 Other commands:
-- `^`: Set current cell to `0`
+- `^`: Set value at current cell to `0` (does not move pointer to cell `0`)
 - `p`: Print numeric value of current cell
 - `;`: Swap current cell with next cell
 - `:`: Copy current cell value to next cell
