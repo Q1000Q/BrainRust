@@ -1,64 +1,81 @@
+# BrainRust
+
 ## Introduction
-This is Brainfuck interpreter written in Rust. It contains all vanilla Brainfuck commands and new added ones. I know that they are not in spirit of Brainfuck, but it's just for fun.
-It is just some funny project, not for real usage.
+BrainRust is a Brainfuck interpreter written in Rust.
+
+It supports all vanilla Brainfuck commands and also includes extra custom commands for convenience and experimentation. These extensions are intentionally not "pure" Brainfuck—they are included just for fun.
+
+This project is mainly a hobby project and is not intended for production use.
 
 ## Usage
-- To use this interpreter download source files and compile it with Rust or download precompiled program from Releases
-- Then run it from console/terminal with path to file with Brainfuck code in argument
+- Build from source, or download a precompiled binary from Releases.
+- Run the executable and pass a path to a Brainfuck source file.
 
-Windows: `.\path\to\brainrust.exe [--vanilla] .\path\to\code.bf` (SmartScreen warning may appear, because I can't afford a certification to sign the pre-build .exe) <br>
-Linux: `./path/to/brainrust [--vanilla] ./path/to/code.bf` (make sure the brainrust file on linux has execution privilages)
+Windows:
+`\.\path\to\brainrust.exe [--vanilla] .\path\to\code.bf`
 
-If you want to run it on macos, compaile it from source.
+Linux:
+`./path/to/brainrust [--vanilla] ./path/to/code.bf`
 
-## Current commands
+Notes:
+- On Windows, SmartScreen may warn when running a downloaded `.exe`.
+- On Linux, make sure the binary has execute permissions.
+- For macOS, compile from source.
 
-### COMMANDS THAT ARE IN VANILLA BRAINFUCK
+### Build from source
+1. Clone the repository: `git clone https://github.com/Q1000Q/BrainRust`
+2. Install Rust and Cargo: https://doc.rust-lang.org/cargo/getting-started/installation.html
+3. In the project directory, run: `cargo build -r`
+4. The executable will be in `target/release/`
 
-`+` : Increments the value at the current cell by one <br>
-`-` : Decrements the value at the current cell by one <br>
-`>` : Moves the data pointer to the next cell (cell on the right) <br>
-`<` : Moves the data pointer to the previous cell (cell on the left) <br>
-`.` : Prints the ASCII value at the current cell (i.e. 65 = 'A') <br>
-`,` : Reads a single input character into the current cell <br>
-`[` : If the value at the current cell is zero, skips to the corresponding `]`, otherwise, move to the next instruction <br>
-`]` : If the value at the current cell is zero, move to the next instruction, otherwise, move backwards in the instructions to the corresponding `[`
+## Commands
 
-`[` and `]` form a while loop. Obviously, they must be balanced.
+### Vanilla Brainfuck commands
+- `+`: Increment the value at the current cell by 1
+- `-`: Decrement the value at the current cell by 1
+- `>`: Move the data pointer one cell to the right
+- `<`: Move the data pointer one cell to the left
+- `.`: Print the ASCII character at the current cell (`65` = `A`)
+- `,`: Read a single input character into the current cell
+- `[`: If current cell is `0`, jump to matching `]`; otherwise continue
+- `]`: If current cell is non-zero, jump back to matching `[`; otherwise continue
 
-### BELOW ARE COMMANDS THAT ARE NOT IN VANILLA BRAINFUCK, SO WITH `--vanilla` OPTION THEY WILL BE SKIPPED
+`[` and `]` form a while loop and must be balanced.
 
-`\` : Sets current cell value to 10 (LFeed) <br>
-`b'x'` : Sets x character ASCII table value to current cell <br>
-`s"abc"` : Sets abc string (any numbers of characters) values to the current cell and the next ones as required, if you want to add `"` to the string use `\"`
+### Extended commands (disabled with `--vanilla`)
+- `\`: Set current cell to `10` (line feed)
+- `b'x'`: Set current cell to ASCII value of character `x`
+- `s"abc"`: Write string bytes to current and following cells (use `\"` to include `"`)
 
-`0xAA` : Sets hex value after 0x to the current cell (needs exacly 2 hex numbers after 0x) <br>
-`0d123` : Sets decimal value after 0d to the current cell (needs exacly 3 decimal numbers after 0d) <br>
-`0b11001010` : Sets binary value after 0b to the current cell (needs exacly 8 binary numbers after 0b)
+- `0xAA`: Set current cell from hex literal (`0x` + exactly 2 hex digits)
+- `0d123`: Set current cell from decimal literal (`0d` + exactly 3 decimal digits)
+- `0b11001010`: Set current cell from binary literal (`0b` + exactly 8 bits)
 
-`f(file_path){operations}` - opens file `file_path` or creates it and executes commands in file and the file contents is new tape (of length 30000, so content above 30000 characters in file won't be accessible and will be lost when opened) <br>
-`r(file_path)` - reads the content of the file, saves it to current tape, starting from current pointer location <br>
-`w(file_path)` - wrties the tape to file, starting from cell 0 <br>
-`a(file_path)` - appends tape to file, starting from cell 0 <br>
-**Relative paths are relative to the bf file location, not the CWD, if you want relative to CWD, add `@` before path, for example: `f(@./cwdfile.txt){s"Im in current user's directory"}`**
+- `f(file_path){operations}`: Open/create `file_path`, use file content as a new tape (length `30000`), then execute `operations`
+- `r(file_path)`: Read file content into current tape starting at current pointer
+- `w(file_path)`: Write tape to file starting from cell `0`
+- `a(file_path)`: Append tape to file starting from cell `0`
 
-**If you have vanilla mode disabled you can also do `>123` to move 123 cells forward and `<32` to move 32 cells backward**
+Path behavior:
+- Relative paths are resolved relative to the `.bf` file location.
+- To resolve relative to current working directory, prefix path with `@`.
+- Example: `f(@./cwdfile.txt){s"Im in current user's directory"}`
 
-`^` : Zeros current cell <br>
-`p` : Prints number value of current cell <br>
-`;` : Swaps current cell value with next one <br>
-`:` : Copies current cell value to the next one <br>
-`A` : Prints out address of current cell (pointer value) <br>
-`R` : Inserts random number to current cell <br>
-`S` : Sleeps the amount of seconds equal to current cell (pointed to by pointer) value <br>
-`$distance{operations}` : Executes operations with pointer moved by `distance` (distance can be negative) (pointer will return to its original location after executing operations) <br>
+Pointer movement extension:
+- You can use `>123` to move 123 cells right and `<32` to move 32 cells left.
 
-`(operations)` : executes operations exacly once if the current value is other than 0, skips operations otherwise
-
-`D` : Prints a splice of a tape with current cell pointed at along its address, mainy for debbuging purposes
-`//` : Comment, everything after this to end of the line won't be parsed as code <br>
-
-`Tn` : Switch to tape n (starting tape is 0), n could be any ONE character (eg. 0, 5, a, B, ^, ...)
-
-`@(name){operations}` : Define macro of name `name` with `operations` <br>
-`#(name)` : Runs macro of name `name`
+Other commands:
+- `^`: Set current cell to `0`
+- `p`: Print numeric value of current cell
+- `;`: Swap current cell with next cell
+- `:`: Copy current cell value to next cell
+- `A`: Print pointer address (current cell index)
+- `R`: Put a random value into current cell
+- `S`: Sleep for number of seconds equal to current cell value
+- `$distance{operations}`: Run `operations` with pointer temporarily offset by `distance` (can be negative), then restore pointer
+- `(operations)`: Execute once only if current cell is non-zero
+- `D`: Print a tape slice with pointer position/address (debug helper)
+- `//`: Line comment (everything after `//` to end of line is ignored)
+- `Tn`: Switch to tape `n` (starting tape is `0`, and `n` is a single character)
+- `@(name){operations}`: Define macro `name`
+- `#(name)`: Execute macro `name`
