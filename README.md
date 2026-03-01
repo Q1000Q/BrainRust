@@ -28,6 +28,9 @@ Notes:
 3. In the project directory, run: `cargo build -r`
 4. The executable will be in `target/release/`
 
+## Full Test Program
+**Use [./examples/test_all.bf](./examples/test_all.bf) — it tests everything, and the expected output is provided at the bottom of the file.**
+
 ## Commands
 
 ### Vanilla Brainfuck commands

@@ -35,6 +35,10 @@ pub fn print(tape: &[u8], pointer: &usize) {
 
 // Require user to enter a ASCII character and saves it to the tape cell that *pointer is pointing
 pub fn read(tape: &mut [u8], pointer: &usize) {
+    let _ = io::stdout().flush();
+    let _ = io::stderr().flush();
+    println!();
+    io::stdout().flush().unwrap();
     eprint!("[input: 1 char] ");
     let _ = io::stderr().flush();
     let mut tmp = String::new();
