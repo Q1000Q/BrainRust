@@ -160,7 +160,8 @@ p       // Goes back to tape '0' and prints current numeric value, which is 0, b
 
 // Expected output of executing this file:
 // ```
-// A{your inputed character}$
+// A
+// {your inputed character}$
 // ZAAB44415
 // {random number 0-255}
 // 155
