@@ -1,4 +1,4 @@
-use std::io::stdin;
+use std::io::{self, stdin, Write};
 
 // Adds 1 to *pointer (moves *pointer 1 forward)
 pub fn forward(tape: &[u8], pointer: &mut usize) {
@@ -35,8 +35,13 @@ pub fn print(tape: &[u8], pointer: &usize) {
 
 // Require user to enter a ASCII character and saves it to the tape cell that *pointer is pointing
 pub fn read(tape: &mut [u8], pointer: &usize) {
+    eprint!("[input: 1 char] ");
+    let _ = io::stderr().flush();
     let mut tmp = String::new();
     stdin().read_line(&mut tmp).expect("Failed to read line");
+    let display_input = tmp.trim_end_matches(&['\r', '\n'][..]);
+    eprint!("\x1b[1A\r\x1b[2K{}\n", display_input);
+    let _ = io::stderr().flush();
     if let Some(byte) = tmp.bytes().next() {
         tape[*pointer] = byte;
     }

@@ -75,7 +75,7 @@ Other commands:
 - `$distance{operations}`: Run `operations` with pointer temporarily offset by `distance` (can be negative), then restore pointer
 - `(operations)`: Execute once only if current cell is non-zero
 - `D`: Print a tape slice with pointer position/address (debug helper)
-- `//`: Line comment (everything after `//` to end of line is ignored)
+- `//`: Line comment (everything after `//` to end of line is ignored) (**comments also don't work when vanilla mode is userd**)
 - `Tn`: Switch to tape `n` (starting tape is `0`, and `n` is a single character)
 - `@(name){operations}`: Define macro `name`
 - `#(name)`: Execute macro `name`
