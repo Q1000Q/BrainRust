@@ -5,3 +5,7 @@ edition = "2024"
 
 [dependencies]
 rand = "0.10.0"
+
+[package.metadata.winres]
+ProductName = "BrainRust"
+FileDescription = "Brainfuck Interpreter"

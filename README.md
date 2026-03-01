@@ -3,11 +3,13 @@ This is Brainfuck interpreter written in Rust. It contains all vanilla Brainfuck
 It is just some funny project, not for real usage.
 
 ## Usage
-- To use this interpreter download source files and compile it with rust or download precompiled program from Releases
-- Then run it from console/terminal with path to file with Brainfuck code in argument eg.
-```
-brainrust [--vanilla] code.bf
-```
+- To use this interpreter download source files and compile it with Rust or download precompiled program from Releases
+- Then run it from console/terminal with path to file with Brainfuck code in argument
+
+Windows: `.\path\to\brainrust.exe [--vanilla] .\path\to\code.bf` (SmartScreen warning may appear, because I can't afford a certification to sign the pre-build .exe) <br>
+Linux: `./path/to/brainrust [--vanilla] ./path/to/code.bf` (make sure the brainrust file on linux has execution privilages)
+
+If you want to run it on macos, compaile it from source.
 
 ## Current commands
 
@@ -48,7 +50,7 @@ brainrust [--vanilla] code.bf
 `:` : Copies current cell value to the next one <br>
 `A` : Prints out address of current cell (pointer value) <br>
 `R` : Inserts random number to current cell <br>
-`S` : Sleeps the current cell value seconds <br>
+`S` : Sleeps the amount of seconds equal to current cell (pointed to by pointer) value <br>
 `$distance{operations}` : Executes operations with pointer moved by `distance` (distance can be negative) (pointer will return to its original location after executing operations) <br>
 
 `(operations)` : executes operations exacly once if the current value is other than 0, skips operations otherwise
