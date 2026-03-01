@@ -12,10 +12,10 @@ This project is mainly a hobby project and is not intended for production use.
 - Run the executable and pass a path to a Brainfuck source file.
 
 Windows:
-`\.\path\to\brainrust.exe [--vanilla] .\path\to\code.bf`
+`.\path\to\brainrust.exe .\path\to\code.bf`
 
 Linux:
-`./path/to/brainrust [--vanilla] ./path/to/code.bf`
+`./path/to/brainrust ./path/to/code.bf`
 
 Notes:
 - On Windows, SmartScreen may warn when running a downloaded `.exe`.
