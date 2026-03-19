@@ -171,6 +171,6 @@ p       // Goes back to tape '0' and prints current numeric value, which is 0, b
 // ```
 // The curly brackets are thigs that change depending on input/randomness
 // 
-// it will also create 2 files:  
+// it will also create 2 files (in the directory where the code file is located, no matter your pwd):  
 // `testfile.txt` with content: `FILE`
 // `testfile_out.txt` with content: `FILEHelloBFILEHelloB`
